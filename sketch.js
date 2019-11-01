@@ -1,0 +1,151 @@
+const c = document.getElementById("game");
+const draw = c.getContext("2d");
+let player;
+let pperf = 0;
+let ticktime = 0;
+const particles = [];
+const enemies = [];
+const arc = {
+    r: 0,
+    d: 8,
+    width: Math.PI / 2
+}
+const viewport = {
+    x: 0,
+    y: 0
+}
+const palette = {
+    foregroundColor: `rgba(235, 235, 235)`,
+    foreground: function () { draw.fillStyle = palette.foregroundColor },
+    backgroundColor: `rgba(51, 51, 51, 0.5)`,
+    background: function () { draw.fillStyle = palette.backgroundColor },
+    gridColor: `#10acea`,
+    grid: function () { draw.fillStyle = palette.gridColor },
+    exhaustColor: `rgb(255, 0, 0)`,
+    exhaust: function () { draw.fillStyle = palette.exhaustColor },
+    arcColor: `hsla(273, 100%, 50%, 1)`,
+    arc: function () { draw.fillStyle = palette.arcColor; }
+}
+
+
+function setup() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    player = new Player();
+    adjustViewport()
+    requestAnimationFrame(drawLoop);
+}
+
+function drawLoop() {
+    adjustViewport();
+    palette.background();
+    draw.fillRect(0, 0, c.width, c.height);
+    drawGrid();
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        if (particles[i].show()) {
+            particles.splice(i, 1);
+        }
+    }
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (enemies[i].show()) {
+            enemies.splice(i, 1);
+        }
+    }
+
+    drawArrows();
+
+    draw.lineWidth = 4
+    draw.strokeStyle = palette.arcColor;
+    draw.beginPath();
+    draw.arc(player.pos.x - viewport.x, player.pos.y - viewport.y, c.width / arc.d, player.pos.r - arc.width / 2, player.pos.r + arc.width / 2);
+    draw.stroke();
+
+    player.update();
+
+    ticktime = performance.now() - pperf;
+    pperf = performance.now();
+    requestAnimationFrame(drawLoop);
+}
+
+function polarToCart(r, d) {
+    return [d * Math.cos(r), d * Math.sin(r)]
+}
+
+function map(v, min1, max1, min2, max2) {
+    return ((v - min1) / (max1 - min1)) * (max2 - min2) + min2
+}
+
+function drawGrid() {
+    draw.strokeStyle = palette.gridColor;
+    draw.lineWidth = 1;
+    let div = 18;
+    for (let i = 0; i < c.height - viewport.y % (c.width / div) + 500; i += c.width / div) {
+        draw.beginPath();
+        draw.moveTo(0, i - viewport.y % (c.width / div));
+        draw.lineTo(c.width, i - viewport.y % (c.width / div));
+        draw.stroke();
+    }
+    for (let i = 0; i < c.width - viewport.x % (c.width / div) + 500; i += c.width / div) {
+        draw.beginPath();
+        draw.moveTo(i - viewport.x % (c.width / div), 0);
+        draw.lineTo(i - viewport.x % (c.width / div), c.height);
+        draw.stroke();
+    }
+}
+
+function drawArrows() {
+    for (let i = 0; i < enemies.length; i++) {
+        if (enemies[i].pos.x - viewport.x < 0 || enemies[i].pos.x - viewport.x > c.width || enemies[i].pos.y - viewport.y < 0 || enemies[i].pos.y - viewport.y > c.height) {
+            palette.foreground();
+
+            let r = Math.atan2((player.pos.y - enemies[i].pos.y), (player.pos.x - enemies[i].pos.x)) + Math.PI;
+
+            let p1 = polarToCart(r, 16);
+            let p2 = polarToCart(Math.PI * 2 / 3 + r, 8);
+            let p3 = polarToCart(Math.PI * 2 * 2 / 3 + r, 8);
+            let d = polarToCart(r, c.width / 16);
+            draw.beginPath();
+            draw.moveTo(p1[0] + player.pos.x - viewport.x + d[0], p1[1] + player.pos.y - viewport.y + d[1]);
+            draw.lineTo(p2[0] + player.pos.x - viewport.x + d[0], p2[1] + player.pos.y - viewport.y + d[1]);
+            draw.lineTo(p3[0] + player.pos.x - viewport.x + d[0], p3[1] + player.pos.y - viewport.y + d[1]);
+            draw.fill();
+        }
+    }
+}
+
+function dist(x1, y1, x2, y2) {
+    let d = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+
+    if (isNaN(d)) {
+        return 0;
+    } else {
+        return d;
+    }
+}
+
+setInterval(() => {
+    enemies.push(new Enemy());
+}, 5000)
+
+function adjustViewport() {
+    const mult = 8;
+    viewport.x = player.pos.v.x * mult + player.pos.x - (c.width / 2);
+    viewport.y = player.pos.v.y * mult + player.pos.y - (c.height / 2);
+}
+
+var keys = {};
+window.addEventListener("keydown",
+    function (e) {
+        keys[e.key] = true;
+    },
+    false);
+
+window.addEventListener('keyup',
+    function (e) {
+        keys[e.key] = false;
+    },
+    false);
+
+setup();
