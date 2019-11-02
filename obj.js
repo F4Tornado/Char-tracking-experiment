@@ -108,8 +108,8 @@ class Enemy {
         // draw.font = "20px Arial";
         // draw.textAlign = "center";
         // draw.fillText(Math.abs(player.pos.r - arc.width / 2 + r) + Math.abs(player.pos.r + arc.width / 2 + r) == arc.width, this.pos.x - viewport.x, this.pos.y - viewport.y - 30);
-        let a1 = [(normalAngle(player.pos.r,true) - (arc.width / 2)), c.width/arc.d-2],
-        b1 = [(normalAngle(player.pos.r,true) + (arc.width / 2)), c.width/arc.d+2],
+        let a1 = [(normalAngle(player.pos.r,true) - (arc.width / 2)), c.width/arc.d],
+        b1 = [(normalAngle(player.pos.r,true) + (arc.width / 2)), c.width/arc.d],
         c1 = cartToPolar(this.pos.x - player.pos.x,this.pos.y - player.pos.y),
         a = polarToCart(normalAngle(a1[0]), a1[1]),
         b = polarToCart(normalAngle(b1[0]), b1[1]);
@@ -119,7 +119,7 @@ class Enemy {
         if (c1[0]<a1[0] && c1[0]<b1[0]) {
             c1[0] += 2*Math.PI
         }
-        if (c1[0]>a1[0] && c1[0]<a1[0]+arc.width && c1[1] > 90 && c1[1] < 110) {
+        if (c1[0]>a1[0] && c1[0]<a1[0]+arc.width && c1[1] > c.width/arc.d-10 && c1[1] < c.width/arc.d+10) {
             if (this.dead == 0) {
                 this.dead = 1;
                 console.log("something died");
