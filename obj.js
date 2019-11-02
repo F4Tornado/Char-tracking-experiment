@@ -122,6 +122,11 @@ class Enemy {
         if (c1[0]>a1[0] && c1[0]<a1[0]+arc.width && c1[1] > c.width/arc.d-10 && c1[1] < c.width/arc.d+10) {
             if (this.dead == 0) {
                 this.dead = 1;
+                draw.fillStyle = "hsla(177, 100%, 66%, 0.7)";
+                draw.beginPath();
+                let p = polarToCart(c1[0], c.width/arc.d);
+                draw.arc(p[0], p[1], 16, 0, Math.PI*2);
+                draw.fill()
                 console.log("something died");
             }
         }
