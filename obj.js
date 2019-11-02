@@ -109,17 +109,32 @@ class Enemy {
         // draw.textAlign = "center";
         // draw.fillText(Math.abs(player.pos.r - arc.width / 2 + r) + Math.abs(player.pos.r + arc.width / 2 + r) == arc.width, this.pos.x - viewport.x, this.pos.y - viewport.y - 30);
         draw.beginPath();
-        let a = polarToCart(player.pos.r % (Math.PI * 2) - arc.width / 2, 100);
-        let b = polarToCart(player.pos.r % (Math.PI * 2) + arc.width / 2, 100);
+        let a1 = [(normalAngle(player.pos.r,true) - (arc.width / 2)), 100],
+        b1 = [(normalAngle(player.pos.r,true) + (arc.width / 2)), 100],
+        c1 = cartToPolar(this.pos.x - player.pos.x,this.pos.y - player.pos.y),
+        a = polarToCart(normalAngle(a1[0]), a1[1]),
+        b = polarToCart(normalAngle(b1[0]), b1[1]);
         draw.arc(a[0] + player.pos.x - viewport.x, a[1] + player.pos.y - viewport.y, 10, 0, Math.PI * 2);
         draw.arc(b[0] + player.pos.x - viewport.x, b[1] + player.pos.y - viewport.y, 10, 0, Math.PI * 2);
         draw.fill();
-        if (d <= (c.width / arc.d) + 12 && d >= (c.width / arc.d) - 12 && Math.abs(player.pos.r % (Math.PI * 2) - arc.width / 2 + r) + Math.abs(player.pos.r % (Math.PI * 2) + arc.width / 2 + r) == arc.width) {
-            // draw.fillStyle = "#ff0000";
+        if (b1[0]<a1[0]) {
+            b1[0] += 2*Math.PI
+        };
+        if (c1[0]<a1[0] && c1[0]<b1[0]) {
+            c1[0] += 2*Math.PI
+        }
+        if (c1[0]>a1[0] && c1[0]<a1[0]+arc.width && c1[1] > 90 && c1[1] < 110) {
             if (this.dead == 0) {
                 this.dead = 1;
+                console.log("something died");
             }
         }
+        // if (d <= (c.width / arc.d) + 12 && d >= (c.width / arc.d) - 12 && Math.abs(player.pos.r % (Math.PI * 2) - arc.width / 2 + r) + Math.abs(player.pos.r % (Math.PI * 2) + arc.width / 2 + r) == arc.width) {
+            // draw.fillStyle = "#ff0000";
+            // if (this.dead == 0) {
+            //     this.dead = 1;
+            // }
+        // }
 
         draw.beginPath();
         draw.arc(this.pos.x - viewport.x, this.pos.y - viewport.y, 8, 0, Math.PI * 2);

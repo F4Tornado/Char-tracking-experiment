@@ -10,12 +10,20 @@
             top: 0;
             left: 0;
         }
+        #fps {
+            position: absolute;
+            top: 50;
+            right: 50;
+            z-index: 5;
+            color: white;
+        }
     </style>
     <script src="particles.js"></script>
     <script src="obj.js"></script>
 </head>
 
 <body>
+    <div><span id="fps">FPS: </span></div>
     <canvas id="game"></canvas>
     <script src="sketch.js"></script>
 </body>

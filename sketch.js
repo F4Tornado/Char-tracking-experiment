@@ -37,6 +37,9 @@ function setup() {
 }
 
 function drawLoop() {
+    console.clear(); // comment out if needed; I was testing enemy death logic
+    setTimeout(()=>requestAnimationFrame(drawLoop),60/1000)
+    let t1 = performance.now();
     adjustViewport();
     palette.background();
     draw.fillRect(0, 0, c.width, c.height);
@@ -66,11 +69,41 @@ function drawLoop() {
 
     ticktime = performance.now() - pperf;
     pperf = performance.now();
-    requestAnimationFrame(drawLoop);
+    // requestAnimationFrame(drawLoop);
+    let t2 = performance.now();
+    document.getElementById("fps").innerHTML = "FPS: " + parseInt((1000/Math.abs(t2-t1)));
 }
 
 function polarToCart(r, d) {
     return [d * Math.cos(r), d * Math.sin(r)]
+}
+
+function cartToPolar(x, y) {
+    let d = Math.sqrt((x**2)+(y**2)),
+    r = normalAngle(Math.atan2(y, x),true);
+    return [r,d];
+}
+// t is the option between -180 to 180 (false) and 0 to 360 (true).
+function normalAngle(r,t) {
+    let o = r;
+    if (t == true) {
+        while (o >= Math.PI*2 || o < 0) {
+            if (o >= Math.PI*2) {
+                o -= Math.PI*2
+            } else {
+                o += Math.PI*2
+            }
+        }
+    } else {
+        while (o >= Math.PI || o < -Math.PI) {
+            if (o >= Math.PI) {
+                o -= Math.PI*2
+            } else {
+                o += Math.PI*2
+            }
+        }
+    }
+    return o;
 }
 
 function map(v, min1, max1, min2, max2) {
