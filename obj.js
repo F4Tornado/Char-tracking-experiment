@@ -108,15 +108,11 @@ class Enemy {
         // draw.font = "20px Arial";
         // draw.textAlign = "center";
         // draw.fillText(Math.abs(player.pos.r - arc.width / 2 + r) + Math.abs(player.pos.r + arc.width / 2 + r) == arc.width, this.pos.x - viewport.x, this.pos.y - viewport.y - 30);
-        draw.beginPath();
-        let a1 = [(normalAngle(player.pos.r,true) - (arc.width / 2)), 100],
-        b1 = [(normalAngle(player.pos.r,true) + (arc.width / 2)), 100],
+        let a1 = [(normalAngle(player.pos.r,true) - (arc.width / 2)), c.width/arc.d-2],
+        b1 = [(normalAngle(player.pos.r,true) + (arc.width / 2)), c.width/arc.d+2],
         c1 = cartToPolar(this.pos.x - player.pos.x,this.pos.y - player.pos.y),
         a = polarToCart(normalAngle(a1[0]), a1[1]),
         b = polarToCart(normalAngle(b1[0]), b1[1]);
-        draw.arc(a[0] + player.pos.x - viewport.x, a[1] + player.pos.y - viewport.y, 10, 0, Math.PI * 2);
-        draw.arc(b[0] + player.pos.x - viewport.x, b[1] + player.pos.y - viewport.y, 10, 0, Math.PI * 2);
-        draw.fill();
         if (b1[0]<a1[0]) {
             b1[0] += 2*Math.PI
         };
