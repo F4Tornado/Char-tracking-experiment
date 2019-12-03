@@ -43,7 +43,7 @@ function setup() {
 function drawLoop() {
     // console.clear(); // comment out if needed; I was testing enemy death logic
     setTimeout(() => { if (lives !== 0) { requestAnimationFrame(drawLoop) } else { requestAnimationFrame(deadLoop) } }, 60 / 1000);
-    let t1 = performance.now();
+    // let t1 = performance.now();
     adjustViewport();
     palette.background();
     draw.fillRect(0, 0, c.width, c.height);
@@ -71,11 +71,11 @@ function drawLoop() {
 
     player.update();
 
-    ticktime = performance.now() - pperf;
-    pperf = performance.now();
+    // ticktime = performance.now() - pperf;
+    // pperf = performance.now();
     // requestAnimationFrame(drawLoop);
     let t2 = performance.now();
-    document.getElementById("fps").innerHTML = "FPS: " + parseInt((1000 / Math.abs(t2 - t1)));
+    // document.getElementById("fps").innerHTML = "FPS: " + parseInt((1000 / Math.abs(t2 - t1)));
 }
 
 function deadLoop() {
@@ -108,11 +108,20 @@ function deadLoop() {
     player.update();
 
     draw.fillStyle = "#fff";
-    draw.font = "120px sans-serif";
+    draw.font = "120px PT Sans Narrow";
     draw.textAlign = "center";
-    draw.fillText("You died", c.width / 2, c.height / 2 - 60);
-    draw.font = "60px sans-serif";
-    draw.fillText("Press enter to restart", c.width / 2, c.height / 2 + 60 + 40);
+
+    let spread = 60;
+
+    if (keys["Enter"]) {
+        lives = 3;
+        enemies.splice(0, enemies.length);
+        timeOffset = date.getTime();
+    }
+
+    draw.fillText("You died", c.width / 2, c.height / 2 - spread);
+    draw.font = "60px PT Sans Narrow";
+    draw.fillText("Press enter to restart", c.width / 2, c.height / 2 + 40 + spread);
 }
 
 function polarToCart(r, d) {
@@ -202,8 +211,9 @@ function dist(x1, y1, x2, y2) {
 function spawnEnemies() {
     setTimeout(() => {
         if (lives !== 0) {
-            enemies.push(new Enemy());
-            enemies.push(new Enemy());
+            for (let i = 0; i < 4; i++) {
+                enemies.push(new Enemy());
+            }
         }
         spawnEnemies();
     }, Math.E ** (-(date.getTime() - timeOffset) / 10000) * 5000);
@@ -215,6 +225,11 @@ function adjustViewport() {
     const mult = 8;
     viewport.x = player.pos.v.x * mult + player.pos.x - (c.width / 2);
     viewport.y = player.pos.v.y * mult + player.pos.y - (c.height / 2);
+}
+
+window.onresize = () => {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
 }
 
 var keys = {};
