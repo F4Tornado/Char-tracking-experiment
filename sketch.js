@@ -3,11 +3,15 @@ const draw = c.getContext("2d");
 let player;
 let pperf = 0;
 let ticktime = 0;
+let lives = 3;
+let date = new Date();
+let timeOffset = date.getTime();
 const particles = [];
 const enemies = [];
 const arc = {
     r: 0,
     d: 8,
+    size: 8,
     width: Math.PI / 2
 }
 const viewport = {
@@ -37,9 +41,45 @@ function setup() {
 }
 
 function drawLoop() {
-    console.clear(); // comment out if needed; I was testing enemy death logic
-    setTimeout(()=>requestAnimationFrame(drawLoop),60/1000)
+    // console.clear(); // comment out if needed; I was testing enemy death logic
+    setTimeout(() => { if (lives !== 0) { requestAnimationFrame(drawLoop) } else { requestAnimationFrame(deadLoop) } }, 60 / 1000);
     let t1 = performance.now();
+    adjustViewport();
+    palette.background();
+    draw.fillRect(0, 0, c.width, c.height);
+    drawGrid();
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        if (particles[i].show()) {
+            particles.splice(i, 1);
+        }
+    }
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (enemies[i].show()) {
+            enemies.splice(i, 1);
+        }
+    }
+
+    drawArrows();
+
+    draw.lineWidth = arc.size;
+    draw.strokeStyle = palette.arcColor;
+    draw.beginPath();
+    draw.arc(player.pos.x - viewport.x, player.pos.y - viewport.y, c.width / arc.d, player.pos.r - arc.width / 2, player.pos.r + arc.width / 2);
+    draw.stroke();
+
+    player.update();
+
+    ticktime = performance.now() - pperf;
+    pperf = performance.now();
+    // requestAnimationFrame(drawLoop);
+    let t2 = performance.now();
+    document.getElementById("fps").innerHTML = "FPS: " + parseInt((1000 / Math.abs(t2 - t1)));
+}
+
+function deadLoop() {
+    setTimeout(() => { if (lives !== 0) { requestAnimationFrame(drawLoop) } else { requestAnimationFrame(deadLoop) } }, 60 / 1000);
     adjustViewport();
     palette.background();
     draw.fillRect(0, 0, c.width, c.height);
@@ -67,11 +107,12 @@ function drawLoop() {
 
     player.update();
 
-    ticktime = performance.now() - pperf;
-    pperf = performance.now();
-    // requestAnimationFrame(drawLoop);
-    let t2 = performance.now();
-    document.getElementById("fps").innerHTML = "FPS: " + parseInt((1000/Math.abs(t2-t1)));
+    draw.fillStyle = "#fff";
+    draw.font = "120px sans-serif";
+    draw.textAlign = "center";
+    draw.fillText("You died", c.width / 2, c.height / 2 - 60);
+    draw.font = "60px sans-serif";
+    draw.fillText("Press enter to restart", c.width / 2, c.height / 2 + 60 + 40);
 }
 
 function polarToCart(r, d) {
@@ -79,27 +120,27 @@ function polarToCart(r, d) {
 }
 
 function cartToPolar(x, y) {
-    let d = Math.sqrt((x**2)+(y**2)),
-    r = normalAngle(Math.atan2(y, x),true);
-    return [r,d];
+    let d = Math.sqrt((x ** 2) + (y ** 2)),
+        r = normalAngle(Math.atan2(y, x), true);
+    return [r, d];
 }
 // t is the option between -180 to 180 (false) and 0 to 360 (true).
-function normalAngle(r,t) {
+function normalAngle(r, t) {
     let o = r;
     if (t == true) {
-        while (o >= Math.PI*2 || o < 0) {
-            if (o >= Math.PI*2) {
-                o -= Math.PI*2
+        while (o >= Math.PI * 2 || o < 0) {
+            if (o >= Math.PI * 2) {
+                o -= Math.PI * 2
             } else {
-                o += Math.PI*2
+                o += Math.PI * 2
             }
         }
     } else {
         while (o >= Math.PI || o < -Math.PI) {
             if (o >= Math.PI) {
-                o -= Math.PI*2
+                o -= Math.PI * 2
             } else {
-                o += Math.PI*2
+                o += Math.PI * 2
             }
         }
     }
@@ -130,7 +171,7 @@ function drawGrid() {
 
 function drawArrows() {
     for (let i = 0; i < enemies.length; i++) {
-        if (enemies[i].pos.x - viewport.x < 0 || enemies[i].pos.x - viewport.x > c.width || enemies[i].pos.y - viewport.y < 0 || enemies[i].pos.y - viewport.y > c.height) {
+        if ((enemies[i].pos.x - viewport.x < 0 || enemies[i].pos.x - viewport.x > c.width || enemies[i].pos.y - viewport.y < 0 || enemies[i].pos.y - viewport.y > c.height) && enemies[i].dead == 0) {
             palette.foreground();
 
             let r = Math.atan2((player.pos.y - enemies[i].pos.y), (player.pos.x - enemies[i].pos.x)) + Math.PI;
@@ -138,7 +179,7 @@ function drawArrows() {
             let p1 = polarToCart(r, 16);
             let p2 = polarToCart(Math.PI * 2 / 3 + r, 8);
             let p3 = polarToCart(Math.PI * 2 * 2 / 3 + r, 8);
-            let d = polarToCart(r, c.width / 16);
+            let d = polarToCart(r, c.width / arc.d + c.width / 32);
             draw.beginPath();
             draw.moveTo(p1[0] + player.pos.x - viewport.x + d[0], p1[1] + player.pos.y - viewport.y + d[1]);
             draw.lineTo(p2[0] + player.pos.x - viewport.x + d[0], p2[1] + player.pos.y - viewport.y + d[1]);
@@ -158,9 +199,17 @@ function dist(x1, y1, x2, y2) {
     }
 }
 
-setInterval(() => {
-    enemies.push(new Enemy());
-}, 5000)
+function spawnEnemies() {
+    setTimeout(() => {
+        if (lives !== 0) {
+            enemies.push(new Enemy());
+            enemies.push(new Enemy());
+        }
+        spawnEnemies();
+    }, Math.E ** (-(date.getTime() - timeOffset) / 10000) * 5000);
+}
+
+spawnEnemies();
 
 function adjustViewport() {
     const mult = 8;
