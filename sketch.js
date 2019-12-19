@@ -12,6 +12,7 @@ const arc = {
     r: 0,
     d: 8,
     size: 8,
+    drawSize: 4,
     width: Math.PI / 2
 }
 const viewport = {
@@ -63,7 +64,7 @@ function drawLoop() {
 
     drawArrows();
 
-    draw.lineWidth = arc.size;
+    draw.lineWidth = arc.drawSize;
     draw.strokeStyle = palette.arcColor;
     draw.beginPath();
     draw.arc(player.pos.x - viewport.x, player.pos.y - viewport.y, c.width / arc.d, player.pos.r - arc.width / 2, player.pos.r + arc.width / 2);
@@ -99,7 +100,7 @@ function deadLoop() {
 
     drawArrows();
 
-    draw.lineWidth = 4
+    draw.lineWidth = arc.drawSize;
     draw.strokeStyle = palette.arcColor;
     draw.beginPath();
     draw.arc(player.pos.x - viewport.x, player.pos.y - viewport.y, c.width / arc.d, player.pos.r - arc.width / 2, player.pos.r + arc.width / 2);
