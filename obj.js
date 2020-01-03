@@ -55,26 +55,26 @@ class Player {
         let moveSpeed = 0.7;
 
         if (lives !== 0) {
-            if (keys["ArrowUp"]) {
+            if (keys["ArrowUp"] || keys["w"]) {
                 let addV = polarToCart(this.pos.r, moveSpeed);
                 this.pos.v.x += addV[0];
                 this.pos.v.y += addV[1];
                 moving = true;
             }
-            if (keys["ArrowDown"]) {
+            if (keys["ArrowDown"] || keys["s"]) {
                 this.pos.v.x *= 0.85;
                 this.pos.v.y *= 0.85;
             }
 
             let turnSpeed = 0.02
 
-            if (keys["ArrowRight"]) {
+            if (keys["ArrowRight"] || keys["d"]) {
                 this.pos.v.r += turnSpeed;
                 if (moving) {
                     this.pos.v.r -= turnSpeed / 2;
                 }
             }
-            if (keys["ArrowLeft"]) {
+            if (keys["ArrowLeft"] || keys["a"]) {
                 this.pos.v.r -= turnSpeed;
                 if (moving) {
                     this.pos.v.r += turnSpeed / 2;

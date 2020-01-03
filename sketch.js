@@ -3,11 +3,14 @@ const draw = c.getContext("2d");
 let player;
 let pperf = 0;
 let ticktime = 0;
-let lives = 3;
+let lives = 0;
 let date = new Date();
 let timeOffset = date.getTime();
 const particles = [];
 const enemies = [];
+let mousex = 0;
+let mousey = 0;
+let justUped = false;
 const arc = {
     r: 0,
     d: 8,
@@ -19,6 +22,8 @@ const viewport = {
     x: 0,
     y: 0
 }
+const upgradeSlots = ["empty", "empty", "empty"];
+const upgrades = [{ image: "images/speeeeed.png", description: "Increase speed by one", name: "speed 1", selected: [undefined, undefined] }];
 const palette = {
     foregroundColor: `rgba(235, 235, 235)`,
     foreground: function () { draw.fillStyle = palette.foregroundColor },
@@ -31,12 +36,20 @@ const palette = {
     arcColor: `hsla(273, 100%, 50%, 1)`,
     arc: function () { draw.fillStyle = palette.arcColor; }
 }
+let mousedown = false;
 
 
 function setup() {
     c.width = window.innerWidth;
     c.height = window.innerHeight;
     player = new Player();
+    for (let i = 0; i < upgrades.length; i++) {
+        let img = document.createElement("img");
+        img.src = upgrades[i].image;
+        img.hidden = true;
+        upgrades[i].image = img;
+        document.body.appendChild(img);
+    }
     adjustViewport()
     requestAnimationFrame(drawLoop);
 }
@@ -121,8 +134,75 @@ function deadLoop() {
     }
 
     draw.fillText("You died", c.width / 2, c.height / 2 - spread);
+    let textWidth = draw.measureText("You died")
     draw.font = "60px PT Sans Narrow";
     draw.fillText("Press enter to restart", c.width / 2, c.height / 2 + 40 + spread);
+
+    let center1 = (c.width / 2 - textWidth.width / 2) / 2;
+    let center2 = c.width - center1;
+    draw.fillText("Upgrade slots", center1, c.height / 8);
+    draw.fillText("Upgrades", center2, c.height / 8);
+    draw.strokeStyle = "#fff";
+    for (let i = 0; i < upgradeSlots.length; i++) {
+        let x = center1 - c.width / 16;
+        let y = c.height / 8 + 32 + i * (c.width / 8 + 16);
+        let width = c.width / 8
+        draw.strokeRect(x, y, width, width);
+        if (upgradeSlots[i] !== "empty") {
+            draw.drawImage(upgrades[upgradeSlots[i]].image, x, y, c.width / 8, c.width / 8);
+            if (mousedown || mousedown[0] === 0) {
+                if (mousex >= x && mousex <= x + width && mousey >= y && mousey <= y + width) {
+                    upgrades[upgradeSlots[i]].selected = [(c.width / 18) / 2, (c.width / 18) / 2];
+                    upgradeSlots[i] = "empty";
+                }
+            }
+        }
+    }
+
+    // Drag & drop
+    let k = 0;
+    for (let j = 0; j < upgrades.length; j++) {
+        for (let i = c.width * 3 / 4; i < c.width - c.width / 18; i += c.width / 18 + 16) {
+            if (!upgradeSlots.includes(j)) {
+                let x = i;
+                let y = k * (c.width / 18 + 16) + c.height / 8 + 32;
+                let width = c.width / 18;
+                let selected = upgrades[j].selected;
+                if (justUped) {
+                    for (let l = 0; l < upgradeSlots.length; l++) {
+                        if (mousex >= center1 - c.width / 16 && mousex <= center1 - c.width / 16 + c.width / 8 && mousey >= c.height / 8 + 32 + l * (c.width / 8 + 16) && mousey <= c.height / 8 + 32 + l * (c.width / 8 + 16) + c.width / 8) {
+                            upgradeSlots[l] = j;
+                        }
+                    }
+                } else if (selected[0] || selected[0] == 0) {
+                    if (!mousedown) {
+                        upgrades[j].selected = [undefined, undefined];
+                    } else {
+                        draw.drawImage(upgrades[j].image, mousex - selected[0], mousey - selected[1], width, width);
+                        draw.lineWidth = 2;
+                        draw.strokeRect(mousex - selected[0], mousey - selected[1], width, width);
+                    }
+                } else {
+                    draw.drawImage(upgrades[j].image, x, y, width, width);
+                    draw.lineWidth = 2;
+                    draw.strokeRect(x, y, width, width);
+                }
+                if (mousedown) {
+                    if (mousedown[0] >= x && mousedown[0] <= x + width && mousedown[1] >= y && mousedown[1] <= y + width) {
+                        upgrades[k].selected = [mousedown[0] - x, mousedown[1] - y];
+                    }
+                }
+            }
+            j++;
+            if (j >= upgrades.length) {
+                break;
+            }
+        }
+        k++;
+    }
+    if (justUped) {
+        justUped = false;
+    }
 }
 
 function polarToCart(r, d) {
@@ -233,6 +313,19 @@ window.onresize = () => {
     c.height = window.innerHeight;
 }
 
+window.addEventListener("mousedown", (e) => {
+    mousedown = [e.clientX, e.clientY];
+});
+
+window.addEventListener("mouseup", (e) => {
+    mousedown = false;
+    justUped = true;
+});
+window.addEventListener("mousemove", (e) => {
+    mousex = e.clientX;
+    mousey = e.clientY;
+})
+
 var keys = {};
 window.addEventListener("keydown",
     function (e) {
@@ -246,4 +339,4 @@ window.addEventListener('keyup',
     },
     false);
 
-setup();
+window.onload = setup;
