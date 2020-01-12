@@ -11,10 +11,11 @@ const enemies = [];
 let mousex = 0;
 let mousey = 0;
 let justUped = false;
+let frames = 0;
 const arc = {
     r: 0,
     d: 8,
-    size: 8,
+    size: 16,
     drawSize: 4,
     width: Math.PI / 2
 }
@@ -23,7 +24,7 @@ const viewport = {
     y: 0
 }
 const upgradeSlots = ["empty", "empty", "empty"];
-const upgrades = [{ image: "images/speeeeed.png", description: "Increase speed by one", name: "speed 1", selected: [undefined, undefined] }];
+const upgrades = [{ image: "images/speeeeed.png", description: "Increase speed by one", name: "speed 1", selected: [undefined, undefined] }, { image: "images/Repel.png", description: "Repel enemies away from you", name: "repel", selected: [undefined, undefined] }];
 const palette = {
     foregroundColor: `rgba(235, 235, 235)`,
     foreground: function () { draw.fillStyle = palette.foregroundColor },
@@ -88,8 +89,9 @@ function drawLoop() {
     // ticktime = performance.now() - pperf;
     // pperf = performance.now();
     // requestAnimationFrame(drawLoop);
-    let t2 = performance.now();
+    // let t2 = performance.now();
     // document.getElementById("fps").innerHTML = "FPS: " + parseInt((1000 / Math.abs(t2 - t1)));
+    frames++;
 }
 
 function deadLoop() {
@@ -135,7 +137,7 @@ function deadLoop() {
 
     draw.fillText("You died", c.width / 2, c.height / 2 - spread);
     let textWidth = draw.measureText("You died")
-    draw.font = "60px PT Sans Narrow";
+    draw.font = "60px PT Sans Narrow, sans-serif";
     draw.fillText("Press enter to restart", c.width / 2, c.height / 2 + 40 + spread);
 
     let center1 = (c.width / 2 - textWidth.width / 2) / 2;
@@ -168,12 +170,14 @@ function deadLoop() {
                 let y = k * (c.width / 18 + 16) + c.height / 8 + 32;
                 let width = c.width / 18;
                 let selected = upgrades[j].selected;
+                // Do stuff when the mouse is released
                 if (justUped) {
                     for (let l = 0; l < upgradeSlots.length; l++) {
-                        if (mousex >= center1 - c.width / 16 && mousex <= center1 - c.width / 16 + c.width / 8 && mousey >= c.height / 8 + 32 + l * (c.width / 8 + 16) && mousey <= c.height / 8 + 32 + l * (c.width / 8 + 16) + c.width / 8) {
+                        if ((mousex >= center1 - c.width / 16 && mousex <= center1 - c.width / 16 + c.width / 8 && mousey >= c.height / 8 + 32 + l * (c.width / 8 + 16) && mousey <= c.height / 8 + 32 + l * (c.width / 8 + 16) + c.width / 8) && (selected[0] || selected[0] == 0)) {
                             upgradeSlots[l] = j;
                         }
                     }
+                    // Do stuff if the upgrade is selected
                 } else if (selected[0] || selected[0] == 0) {
                     if (!mousedown) {
                         upgrades[j].selected = [undefined, undefined];
@@ -182,14 +186,16 @@ function deadLoop() {
                         draw.lineWidth = 2;
                         draw.strokeRect(mousex - selected[0], mousey - selected[1], width, width);
                     }
+                    // Do stuff if neither is happening
                 } else {
                     draw.drawImage(upgrades[j].image, x, y, width, width);
                     draw.lineWidth = 2;
                     draw.strokeRect(x, y, width, width);
                 }
+                // Do stuff if the mouse is being clicked
                 if (mousedown) {
                     if (mousedown[0] >= x && mousedown[0] <= x + width && mousedown[1] >= y && mousedown[1] <= y + width) {
-                        upgrades[k].selected = [mousedown[0] - x, mousedown[1] - y];
+                        upgrades[j].selected = [mousedown[0] - x, mousedown[1] - y];
                     }
                 }
             }
@@ -203,6 +209,7 @@ function deadLoop() {
     if (justUped) {
         justUped = false;
     }
+    frames++;
 }
 
 function polarToCart(r, d) {
@@ -338,5 +345,16 @@ window.addEventListener('keyup',
         keys[e.key] = false;
     },
     false);
+
+function hasUpgrade(a) {
+    for (let i = 0; i < upgradeSlots.length; i++) {
+        if (upgradeSlots[i] !== "empty") {
+            if (upgrades[upgradeSlots[i]].name == a) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 window.onload = setup;

@@ -27,3 +27,28 @@ class Particle {
         }
     }
 }
+
+class Circle {
+    constructor(x, y, r/*radius to end*/, c/*color*/, t/*time*/, w/*width to start*/) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.c = c;
+        this.startT = performance.now();
+        this.t = t;
+        this.w = w;
+    }
+
+    show() {
+        if (performance.now() >= this.t + this.startT) {
+            return "splois";
+        }
+
+        draw.strokeStyle = this.c;
+        draw.lineWidth = (1 - (performance.now() - this.startT) / this.t) * this.w;
+        let r = Math.max(this.r * ((performance.now() - this.startT) / this.t), 0);
+        draw.beginPath();
+        draw.arc(this.x - viewport.x, this.y - viewport.y, r, 0, Math.PI * 2);
+        draw.stroke();
+    }
+}

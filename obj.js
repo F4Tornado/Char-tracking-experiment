@@ -53,6 +53,15 @@ class Player {
         let moving = false;
 
         let moveSpeed = 0.7;
+        if (hasUpgrade("speed 1")) {
+            moveSpeed += 0.3;
+        }
+
+        if (hasUpgrade("repel")) {
+            if (frames % 30 == 0) {
+                particles.push(new Circle(this.pos.x, this.pos.y, c.width / (24 / scale) * 4, "hsla(8, 100%, 50%, 0.7)", 2000, 8));
+            }
+        }
 
         if (lives !== 0) {
             if (keys["ArrowUp"] || keys["w"]) {
@@ -105,7 +114,7 @@ class Enemy {
         this.dead = 0;
     }
     show() {
-        draw.fillStyle = `hsla(0, 100%, ${100 - this.dead}%, ${1 - this.dead / 50})`
+        draw.fillStyle = `hsla(0, 100%, ${100 - this.dead}%, ${1 - this.dead / 50})`;
 
         let r = Math.atan2((player.pos.y - this.pos.y), (player.pos.x - this.pos.x));
 
@@ -114,9 +123,7 @@ class Enemy {
         // draw.fillText(Math.abs(player.pos.r - arc.width / 2 + r) + Math.abs(player.pos.r + arc.width / 2 + r) == arc.width, this.pos.x - viewport.x, this.pos.y - viewport.y - 30);
         let a1 = [(normalAngle(player.pos.r, true) - (arc.width / 2)), c.width / arc.d],
             b1 = [(normalAngle(player.pos.r, true) + (arc.width / 2)), c.width / arc.d],
-            c1 = cartToPolar(this.pos.x - player.pos.x, this.pos.y - player.pos.y),
-            a = polarToCart(normalAngle(a1[0]), a1[1]),
-            b = polarToCart(normalAngle(b1[0]), b1[1]);
+            c1 = cartToPolar(this.pos.x - player.pos.x, this.pos.y - player.pos.y)
         if (b1[0] < a1[0]) {
             b1[0] += 2 * Math.PI
         };
@@ -136,9 +143,9 @@ class Enemy {
         }
 
         if (pointInPoly([this.pos.x, this.pos.y], [[player.p1[0] + player.pos.x, player.p1[1] + player.pos.y], [player.p2[0] + player.pos.x, player.p2[1] + player.pos.y], [player.p3[0] + player.pos.x, player.p3[1] + player.pos.y], [player.p4[0] + player.pos.x, player.p4[1] + player.pos.y]]) && this.dead == 0) {
+            let d = dist(0, 0, this.pos.v.x, this.pos.v.y);
             this.dead = 1;
             let r = Math.atan2(this.pos.v.y, this.pos.v.x);
-            let d = dist(0, 0, this.pos.v.x, this.pos.v.y);
             player.pos.v.x += (this.pos.v.x - player.pos.v.x) / 40;
             player.pos.v.y += (this.pos.v.y - player.pos.v.y) / 40;
             for (let i = 0; i < 20; i++) {
@@ -159,15 +166,25 @@ class Enemy {
         draw.arc(this.pos.x - viewport.x, this.pos.y - viewport.y, 8, 0, Math.PI * 2);
         draw.fill();
 
-        let r2 = polarToCart(r, 0.5);
+        let r2 = polarToCart(r, 1);
         if (this.dead == 0) {
-            this.pos.v.x += r2[0];
-            this.pos.v.y += r2[1];
+            this.pos.v.x += r2[0] * 0.5;
+            this.pos.v.y += r2[1] * 0.5;
         } else if (this.dead <= 50) {
             this.dead++;
         } else {
             return "SPLOOOOSE";
         }
+
+        if (hasUpgrade("repel")) {
+            let dp = dist(this.pos.x, this.pos.y, player.pos.x, player.pos.y);
+            let v = dist(this.pos.v.x, this.pos.v.y, player.pos.v.x, player.pos.v.y);
+            let slow = v / 2;
+            let repel = slow * Math.min(100 / (dp ** 2), 1);
+            this.pos.v.x -= r2[0] * repel;
+            this.pos.v.y -= r2[1] * repel;
+        }
+
         this.pos.x += this.pos.v.x;
         this.pos.y += this.pos.v.y;
         this.pos.v.x *= 0.98;
